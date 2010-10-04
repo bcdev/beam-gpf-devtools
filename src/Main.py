@@ -42,7 +42,7 @@ for config in graphConfigs:
     
     try:
         # TODO: Killing subprocess if started from IDE (Eclipse) does not work?
-        process = subprocess.Popen(gptCommand)       
+        process = subprocess.Popen(cmd)       
         process.wait()
     except SystemExit:
         process.terminate()
