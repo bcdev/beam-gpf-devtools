@@ -3,53 +3,45 @@ import datetime
 import subprocess
 import util
 import csv
+import ConfigParser 
 
- 
-props = util.getTestbedProperties(os.getcwd() + '/testbed.properties')
-GPT_PATH = props['beam.home'] + '/bin/gpt' + util.getScriptExtension() 
-graph = '"' + os.getcwd() + '/' + props['graph'] + '"'
+config = ConfigParser.ConfigParser()
+config.read('testbed.config')
 
-#sourceProduct = '-Ssource=' + '"C:\\Dokumente und Einstellungen\\Marco Peters\\Eigene Dateien\\EOData\\Meris\\FSG\\MER_FSG_1PNACR20030530_105441_000001772016_00452_06518_0000.N1"'
-sourceProduct = '-Ssource=' + '"' + os.getcwd() + "/sourceProducts" + '/MER_RR__1PQBCM20040526_092957_000001012027_00122_11699_0148.N1"'
-
-optionReader = csv.reader(open(os.getcwd() + '/gpt.options'), delimiter='\t')
-gptOptionsList = []
-for row in optionReader :
-    optionName = row[0]
-    optionValues = row[1:]
-    options = []
-    if len(optionValues) == 1 and len(optionValues[0]) == 0 :
-        options.append(optionName)
-        options.append("")
-    else:
-        for v in optionValues :
-            options.append(optionName + " " + v)
-            
-    gptOptionsList.append(options)
-    
-print(gptOptionsList)
-
-combinedOptions = gptOptionsList[0]
-gptOptionsList = gptOptionsList[1:]
-
-for opts in gptOptionsList :
-    for cOptIndex in range(len(combinedOptions)):
-        for oIndex in range(len(opts)) :
-            combinedOptions.append(combinedOptions[cOptIndex] + " " + opts[oIndex])
+GPT_PATH = config.get('general', 'beam.home') + '/bin/gpt' + util.getScriptExtension()
+targetProductsPath = config.get('general', 'targetProductDir')
+graphConfigs = config.items("graphs")
 
         
-print(combinedOptions)
+clearTargetProductsDir = config.getboolean('general', 'targetProductDir.clear')
+if clearTargetProductsDir and os.path.exists(targetProductsPath):
+    util.removeDir(targetProductsPath)           
 
+time = datetime.datetime.utcnow()
+resultFileName = 'Result_' + time.strftime("%Y%m%d-%H%M%S") + '.txt'    
+resultsPath = os.getcwd() + '/results'
+if not os.path.exists(resultsPath):
+    os.makedirs(resultsPath)
 
-for gptOpts in combinedOptions: 
-    cmd = GPT_PATH + ' ' + graph + ' ' + gptOpts + ' ' + sourceProduct
-    print(cmd)
-    print("Starting Run [" + gptOpts + "]")
+csvWriter = csv.writer(open(resultsPath + '/' + resultFileName, 'w'), delimiter='\t')
+
+for config in graphConfigs:  
+    runId = config[0]
+    gptCommand = config[1]
+    targetProductOption = "-t " + targetProductsPath + "/" + runId 
+    cmd = GPT_PATH + " " + targetProductOption + " " + gptCommand
+    
     t0 = datetime.datetime.utcnow()
-    process = subprocess.Popen(cmd)
-    process.wait()
+    print("Starting [" + runId + "] at " + str(t0.time()))
+
+    process = subprocess.Popen(cmd) # TODO - How to kill subprocess when main process is killed?  
+    process.wait()    
     t1 = datetime.datetime.utcnow()
     delta = t1 - t0
-    print("Run [" + gptOpts + "] took: ") 
-    print(delta)
-    
+    output = [runId, delta, cmd]
+    csvWriter.writerow(output)
+    print("[" + runId + "] took: " + str(delta)) 
+    if clearTargetProductsDir:
+        util.removeDir(targetProductsPath)
+        os.makedirs(targetProductsPath)
+print('FINISHED')
