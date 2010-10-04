@@ -14,7 +14,7 @@ else:
 config = ConfigParser.ConfigParser()
 config.read(configFilePath)
 
-' setup path to gpt'
+# setup path to gpt
 GPT_PATH = config.get('DEFAULTS', 'beam.home') + '/bin/gpt' + util.getScriptExtension()
 targetProductsPath = config.get('DEFAULTS', 'targetProductDir')
 clearTargetProductsDir = config.getboolean('DEFAULTS', 'targetProductDir.clear')
