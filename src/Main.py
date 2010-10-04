@@ -1,19 +1,23 @@
 import os
+import sys
 import datetime
 import subprocess
 import util
 import csv
 import ConfigParser 
 
+# Get the configuration from the given file or from the default 'testbed.config'
+if len(sys.argv) > 1:
+    configFilePath = sys.argv[1]
+else:
+    configFilePath = 'testbed.config'
 config = ConfigParser.ConfigParser()
-config.read('testbed.config')
+config.read(configFilePath)
 
-GPT_PATH = config.get('general', 'beam.home') + '/bin/gpt' + util.getScriptExtension()
-targetProductsPath = config.get('general', 'targetProductDir')
-graphConfigs = config.items("graphs")
-
-        
-clearTargetProductsDir = config.getboolean('general', 'targetProductDir.clear')
+' setup path to gpt'
+GPT_PATH = config.get('DEFAULTS', 'beam.home') + '/bin/gpt' + util.getScriptExtension()
+targetProductsPath = config.get('DEFAULTS', 'targetProductDir')
+clearTargetProductsDir = config.getboolean('DEFAULTS', 'targetProductDir.clear')
 if clearTargetProductsDir and os.path.exists(targetProductsPath):
     util.removeDir(targetProductsPath)           
 
@@ -24,6 +28,8 @@ if not os.path.exists(resultsPath):
     os.makedirs(resultsPath)
 
 csvWriter = csv.writer(open(resultsPath + '/' + resultFileName, 'w'), delimiter='\t')
+
+graphConfigs = config.items("GRAPHS")
 
 for config in graphConfigs:  
     runId = config[0]
@@ -36,17 +42,18 @@ for config in graphConfigs:
     
     try:
         # TODO: Killing subprocess if started from IDE (Eclipse) does not work?
-        process = subprocess.Popen(cmd)       
+        process = subprocess.Popen(gptCommand)       
         process.wait()
     except SystemExit:
         process.terminate()
 
     t1 = datetime.datetime.utcnow()
     delta = t1 - t0
-    output = [runId, delta, cmd]
+    output = [runId, delta, gptCommand]
     csvWriter.writerow(output)
     print("[" + runId + "] took: " + str(delta)) 
     if clearTargetProductsDir:
         util.removeDir(targetProductsPath)
         os.makedirs(targetProductsPath)
+        
 print('FINISHED')
