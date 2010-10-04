@@ -15,19 +15,6 @@ def getScriptExtension():
     else:
         return ".sh"
 
-def getTestbedProperties(propertyFile) :
-    f = open(propertyFile)
-    dictionary = {"":""}
-    for line in f.readlines():  
-        line = line.strip()
-        if len(line) == 0: 
-            continue
-        
-        keyValue = line.split('=')        
-        dictionary.update({keyValue[0].strip() : keyValue[1].strip()})
-        
-    return dictionary
-
 def removeDir(dirPath) :
     if not os.path.exists(dirPath):
         return;

@@ -33,9 +33,10 @@ for config in graphConfigs:
     
     t0 = datetime.datetime.utcnow()
     print("Starting [" + runId + "] at " + str(t0.time()))
+    
+    process = subprocess.Popen(cmd) # TODO: How to kill subprocess when main process is killed?      
+    process.wait()
 
-    process = subprocess.Popen(cmd) # TODO - How to kill subprocess when main process is killed?  
-    process.wait()    
     t1 = datetime.datetime.utcnow()
     delta = t1 - t0
     output = [runId, delta, cmd]
