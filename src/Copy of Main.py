@@ -34,22 +34,22 @@ graphConfigs = config.items("GRAPHS")
 for config in graphConfigs:  
     runId = config[0]
     gptCommand = config[1]
-    targetProductOption = "-t " + targetProductsPath + "/" + runId 
-    cmd = GPT_PATH + " " + targetProductOption + " " + gptCommand
+#    targetProductOption = "-t " + targetProductsPath + "/" + runId 
+#    cmd = GPT_PATH + " " + targetProductOption + " " + gptCommand
     
     t0 = datetime.datetime.utcnow()
     print("Starting [" + runId + "] at " + str(t0.time()))
     
     try:
         # TODO: Killing subprocess if started from IDE (Eclipse) does not work?
-        process = subprocess.Popen(cmd)       
+        process = subprocess.Popen(gptCommand)       
         process.wait()
     except SystemExit:
         process.terminate()
 
     t1 = datetime.datetime.utcnow()
     delta = t1 - t0
-    output = [runId, delta, cmd]
+    output = [runId, delta, gptCommand]
     csvWriter.writerow(output)
     print("[" + runId + "] took: " + str(delta)) 
     if clearTargetProductsDir:
