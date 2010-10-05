@@ -27,3 +27,11 @@ def removeDir(dirPath) :
             os.remove(file)
     os.rmdir(dirPath)
     return
+
+def getSectionMerely(config, sectionName):
+    'returns the elements of the section specified by sectionName without the elements of the "DEFAULT" section'
+    default = config.items('DEFAULT')
+    section = config.items(sectionName)
+    for item in default:
+        section.remove(item)
+    return section

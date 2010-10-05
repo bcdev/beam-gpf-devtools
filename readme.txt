@@ -14,9 +14,9 @@ It follows the normal Python configuration file scheme.
 <name>: <value>
 
 The file has to sections:
-[DEFAULTS]
+[DEFAULT]
 Here are general properties stored, valid for multiple runs.
-[GRAPHS]
+[GRAPH]
 Here are the command line calls defined with the configuration for each call.
 The path to gpt(.bat/.sh/.command) is omitted.
  

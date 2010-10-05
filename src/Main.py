@@ -1,10 +1,14 @@
 import os
 import sys
 import datetime
+import time 
 import subprocess
 import util
 import csv
 import ConfigParser 
+
+DEFAULT_SECTION = 'DEFAULT'
+GRAPH_SECTION = 'GRAPH'
 
 # Get the configuration from the given file or from the default 'testbed.config'
 if len(sys.argv) > 1:
@@ -14,46 +18,55 @@ else:
 config = ConfigParser.ConfigParser()
 config.read(configFilePath)
 
-# setup path to gpt
-GPT_PATH = config.get('DEFAULTS', 'beam.home') + '/bin/gpt' + util.getScriptExtension()
-targetProductsPath = config.get('DEFAULTS', 'targetProductDir')
-clearTargetProductsDir = config.getboolean('DEFAULTS', 'targetProductDir.clear')
-if clearTargetProductsDir and os.path.exists(targetProductsPath):
-    util.removeDir(targetProductsPath)           
+targetProductsPath = config.get(DEFAULT_SECTION, 'targetProductDir')
+timeoutValue = config.getint(DEFAULT_SECTION, 'timeout')         
+clearTargetProductsDir = config.getboolean(DEFAULT_SECTION, 'targetProductDir.clear')
 
-time = datetime.datetime.utcnow()
-resultFileName = 'Result_' + time.strftime("%Y%m%d-%H%M%S") + '.txt'    
-resultsPath = os.getcwd() + '/results'
+if clearTargetProductsDir and os.path.exists(targetProductsPath):
+    util.removeDir(targetProductsPath)    
+
+currentTime = datetime.datetime.utcnow()
+resultFileName = 'Result_' + currentTime.strftime("%Y%m%d-%H%M%S") + '.txt'    
+resultsPath = 'results'
 if not os.path.exists(resultsPath):
     os.makedirs(resultsPath)
 
 csvWriter = csv.writer(open(resultsPath + '/' + resultFileName, 'w'), delimiter='\t')
 
-graphConfigs = config.items("GRAPHS")
+graphConfigs = util.getSectionMerely(config, GRAPH_SECTION)
 
-for config in graphConfigs:  
-    runId = config[0]
-    gptCommand = config[1]
-    targetProductOption = "-t " + targetProductsPath + "/" + runId 
-    cmd = GPT_PATH + " " + targetProductOption + " " + gptCommand
-    
-    t0 = datetime.datetime.utcnow()
-    print("Starting [" + runId + "] at " + str(t0.time()))
-    
+for graphItem in graphConfigs:  
     try:
-        # TODO: Killing subprocess if started from IDE (Eclipse) does not work?
-        process = subprocess.Popen(cmd)       
-        process.wait()
-    except SystemExit:
-        process.terminate()
+        runId = graphItem[0]
+        gptCommand = graphItem[1]
 
-    t1 = datetime.datetime.utcnow()
-    delta = t1 - t0
-    output = [runId, delta, cmd]
-    csvWriter.writerow(output)
-    print("[" + runId + "] took: " + str(delta)) 
-    if clearTargetProductsDir:
-        util.removeDir(targetProductsPath)
-        os.makedirs(targetProductsPath)
-        
+        t0 = datetime.datetime.utcnow()
+        print("Starting [" + runId + "] at " + str(t0.time()))
+        status = 'Completed'
+        try:
+            # TODO: Killing subprocess if started from IDE (Eclipse) does not work?
+            process = subprocess.Popen(gptCommand)
+            while process.poll() == None :
+                time.sleep(0.1)
+                tempDelta = datetime.datetime.utcnow() - t0
+                if timeoutValue > 0 and tempDelta > datetime.timedelta(minutes=timeoutValue) :
+                    process.kill()
+                    status = 'Timeout'
+        except SystemExit:
+            process.terminate()
+            status = 'Canceled'
+    
+        t1 = datetime.datetime.utcnow()
+        delta = t1 - t0
+    except Exception as e:
+        print(e)
+        status = 'ERROR'
+    finally:
+        output = [runId, delta, status, gptCommand]
+        csvWriter.writerow(output)
+        print("[" + runId + ":" + status + "] took: " + str(delta)) 
+        if clearTargetProductsDir:
+            util.removeDir(targetProductsPath)
+            os.makedirs(targetProductsPath)
+
 print('FINISHED')
