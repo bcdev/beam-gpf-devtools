@@ -14,7 +14,7 @@ COMMAND_SECTION = 'COMMAND'
 if len(sys.argv) > 1:
     configFilePath = sys.argv[1]
 else:
-    configFilePath = 'testbed.config'
+    configFilePath = 'template.config'
 config = ConfigParser.ConfigParser()
 config.read(configFilePath)
 

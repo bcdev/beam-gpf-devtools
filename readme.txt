@@ -7,7 +7,7 @@ The results are written into a file in the results directory.
 The result file has the following naming convention:
 Result_<YYYYMMDD-HHMMSS>.txt  
 
-By default the configuration of the testbed is taken from the file testbed.config.
+By default the configuration of the testbed is taken from the file template.config.
 The configuration file can also be given as first command line parameter.
 It follows the normal Python configuration file scheme.
 [section]
