@@ -5,10 +5,10 @@ import time
 import subprocess
 import util
 import csv
-import ConfigParser 
+import ConfigParser import util
 
 DEFAULT_SECTION = 'DEFAULT'
-GRAPH_SECTION = 'GRAPH'
+COMMAND_SECTION = 'COMMAND'
 
 # Get the configuration from the given file or from the default 'testbed.config'
 if len(sys.argv) > 1:
@@ -33,7 +33,7 @@ if not os.path.exists(resultsPath):
 
 csvWriter = csv.writer(open(resultsPath + '/' + resultFileName, 'w'), delimiter='\t')
 
-graphConfigs = util.getSectionMerely(config, GRAPH_SECTION)
+graphConfigs = util.getSectionMerely(config, COMMAND_SECTION)
 
 for graphItem in graphConfigs:  
     try:
