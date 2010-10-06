@@ -16,7 +16,8 @@ It follows the normal Python configuration file scheme.
 The file has to sections:
 [DEFAULT]
 Here are general properties stored, valid for multiple runs.
-[GRAPH]
-Here are the command line calls defined with the configuration for each call.
-The path to gpt(.bat/.sh/.command) is omitted.
- 
+[COMMANDS]
+Insert in this section the commands which shall be executed.
+The place where the options shall be inserted is defined by ${OPTIONS}.
+[OPTIONS]
+Define here the options which shall be iterated. 

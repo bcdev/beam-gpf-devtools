@@ -1,0 +1,56 @@
+<graph id="testcase">
+	<version>1.0</version>
+
+	<node id="RC">
+		<operator>Meris.CorrectRadiometry</operator>
+		<sources>
+			<source>${source}</source>
+		</sources>
+		<parameters>
+			<doSmile>true</doSmile>
+			<doEqualization>true</doEqualization>
+			<reproVersion>REPROCESSING_3</reproVersion>
+			<doRadToRefl>false</doRadToRefl>
+		</parameters>
+	</node>
+
+<!--<node id="AC">
+  <operator>Meris.GlintCorrection</operator>
+  <sources>
+    <merisProduct>RC</merisProduct>
+  </sources>
+  <parameters>
+    <useFlint>false</useFlint>
+  </parameters>
+</node>
+-->
+
+<!--
+	<node id="cloudscreening">
+		<operator>idepix.ComputeChain</operator>
+		<sources>
+			<source>preprocessNode1</source>
+		</sources>
+		<parameters>
+			<algorithm>GlobAlbedo</algorithm>			
+			<pressureOutputPbaro>true</pressureOutputPbaro>
+			<pressurePbaroGetasse>true</pressurePbaroGetasse>
+			<pressureOutputPsurfFub>true</pressureOutputPsurfFub>
+			<pressureFubTropicalAtmosphere>true</pressureFubTropicalAtmosphere>
+			<pressureQWGOutputCtpStraylightCorrFub>true
+			</pressureQWGOutputCtpStraylightCorrFub>
+			<pressureOutputP1Lise>true</pressureOutputP1Lise>
+			<pressureOutputPSurfLise>true</pressureOutputPSurfLise>
+			<pressureOutputP2Lise>true</pressureOutputP2Lise>
+			<pressureOutputPScattLise>true</pressureOutputPScattLise>
+			<cloudOutputBlueBand>true</cloudOutputBlueBand>
+			<cloudOutputCloudProbability>true</cloudOutputCloudProbability>
+			<cloudOutputCombinedCloud>true</cloudOutputCombinedCloud>
+			<gaCopyRadiances>true</gaCopyRadiances>
+			<gaCopyAnnotations>true</gaCopyAnnotations>
+			<gaComputeFlagsOnly>true</gaComputeFlagsOnly>
+			<ccCopyRadiances>true</ccCopyRadiances>
+		</parameters>
+	</node>
+-->
+</graph>

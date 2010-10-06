@@ -29,9 +29,30 @@ def removeDir(dirPath) :
     return
 
 def getSectionMerely(config, sectionName):
-    'returns the elements of the section specified by sectionName without the elements of the "DEFAULT" section'
+    "returns the elements of the section specified by sectionName without the elements of the 'DEFAULT' section"
     default = config.items('DEFAULT')
     section = config.items(sectionName)
     for item in default:
         section.remove(item)
     return section
+
+
+def getPermutedOptions(options):
+    if not options:
+        return []
+    optionList = []
+    optionValues = options[0][1].split(',')
+    optionName = options[0][0]
+    tailOptionList = getPermutedOptions(options[1:])
+    for v in optionValues :
+        if tailOptionList:
+            for t in tailOptionList :
+                currentOption = {optionName : v.strip()}
+                currentOption.update(t)
+                optionList.append(currentOption)
+        else:
+            currentOption = {optionName : v.strip()}
+            optionList.append(currentOption)
+                
+           
+    return optionList
