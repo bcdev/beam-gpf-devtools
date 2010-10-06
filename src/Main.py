@@ -5,7 +5,7 @@ import time
 import subprocess
 import util
 import csv
-import ConfigParser import util
+import ConfigParser
 
 DEFAULT_SECTION = 'DEFAULT'
 COMMAND_SECTION = 'COMMAND'
@@ -18,9 +18,9 @@ else:
 config = ConfigParser.ConfigParser()
 config.read(configFilePath)
 
-targetProductsPath = config.get(DEFAULT_SECTION, 'targetProductDir')
+targetProductsPath = config.get(DEFAULT_SECTION, 'targetproductdir')
 timeoutValue = config.getint(DEFAULT_SECTION, 'timeout')         
-clearTargetProductsDir = config.getboolean(DEFAULT_SECTION, 'targetProductDir.clear')
+clearTargetProductsDir = config.getboolean(DEFAULT_SECTION, 'targetproductdir.clear')
 
 if clearTargetProductsDir and os.path.exists(targetProductsPath):
     util.removeDir(targetProductsPath)    
