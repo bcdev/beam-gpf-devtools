@@ -18,7 +18,11 @@ The file has to sections:
 [DEFAULT]
 Here are general properties stored, valid for multiple runs.
 [COMMANDS]
-Insert in this section the commands which shall be executed.
-The place where the options shall be inserted is defined by ${OPTIONS}.
+Insert in this section the command which shall be executed.
+You can reference the options defined in the OPTIONS sections 
+with the following syntax: ${optionName}.
 [OPTIONS]
-Define here the options which shall be iterated. 
+Define here the options which shall be iterated.
+If a special value shall be put into the result table instead of the option value  
+use the following syntax for an option:
+<optionValue>#<outputValue>

@@ -45,13 +45,21 @@ def getPermutedOptions(options):
     optionName = options[0][0]
     tailOptionList = getPermutedOptions(options[1:])
     for v in optionValues :
+        if v.find('#') >= 0:
+            valueList = v.split('#');
+            cmdValue = valueList[0].strip()
+            outputValue = valueList[1].strip()
+        else :
+            cmdValue = v.strip()
+            outputValue = cmdValue
+            
         if tailOptionList:
             for t in tailOptionList :
-                currentOption = {optionName : v.strip()}
+                currentOption = {optionName : [cmdValue, outputValue]}
                 currentOption.update(t)
                 optionList.append(currentOption)
         else:
-            currentOption = {optionName : v.strip()}
+            currentOption = {optionName : [cmdValue, outputValue]}
             optionList.append(currentOption)
                 
            

@@ -33,7 +33,7 @@ resultsPath = 'results'
 if not os.path.exists(resultsPath):
     os.makedirs(resultsPath)
 
-csvWriter = csv.writer(open(resultsPath + '/' + resultFileName, 'w'), delimiter='\t')
+csvWriter = csv.writer(open(resultsPath + '/' + resultFileName, 'wb'), delimiter='\t')
 
 optionConfig = util.getSectionMerely(config, OPTIONS_SECTION)
 permutedOptions = util.getPermutedOptions(optionConfig)
@@ -52,19 +52,18 @@ csvWriter.writerow(headerline)
 commandCfgs = util.getSectionMerely(config, COMMANDS_SECTION)
 for cmdCfg in commandCfgs:
     id = cmdCfg[0]
-    baseCommand = cmdCfg[1]
+    command = cmdCfg[1]
     for i in range(len(permutedOptions)):  
         try:
             optionMap = permutedOptions[i]
             optionString = ''
             for keyValue in optionMap.items():
-                currOpt = keyValue[1].strip()
+                currOpt = keyValue[1][0]
                 if len(currOpt) != 0:
-                    optionString = optionString + ' ' + keyValue[1]
+                    command = command.replace('${'+keyValue[0]+'}', keyValue[1][0])
                               
-            command = baseCommand.replace("${OPTIONS}", optionString)
             t0 = datetime.datetime.utcnow()
-            runid = id + "_" + str(i) + "(" + optionString + ")"
+            runid = id + "_" + str(i)
             print("Starting [" + runid + "] at " + str(t0.time()))
             status = ''
             try:
@@ -90,8 +89,8 @@ for cmdCfg in commandCfgs:
                 status = 'Completed'
             output = [id]
             for item in optionConfig:
-                output.append(optionMap[item[0]])
-            output.extend([delta, status, command])
+                output.append(optionMap[item[0]][1])
+            output.extend([delta.total_seconds(), status, command])
             csvWriter.writerow(output)
             print("Completed[" + runid+"] took: " + str(delta)) 
             if clearTargetProductsDir:
