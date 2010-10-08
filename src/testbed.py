@@ -51,17 +51,17 @@ csvWriter.writerow(headerline)
 
 commandCfgs = util.getSectionMerely(config, COMMANDS_SECTION)
 for cmdCfg in commandCfgs:
-    id = cmdCfg[0]
-    command = cmdCfg[1]
     for i in range(len(permutedOptions)):  
         try:
+            id = cmdCfg[0]
+            command = cmdCfg[1]
             optionMap = permutedOptions[i]
             optionString = ''
             for keyValue in optionMap.items():
                 currOpt = keyValue[1][0]
                 if len(currOpt) != 0:
-                    command = command.replace('${'+keyValue[0]+'}', keyValue[1][0])
-                              
+                    command = command.replace('${'+keyValue[0]+'}', currOpt)
+            print(command)                  
             t0 = datetime.datetime.utcnow()
             runid = id + "_" + str(i)
             print("Starting [" + runid + "] at " + str(t0.time()))
@@ -75,7 +75,6 @@ for cmdCfg in commandCfgs:
                     if timeoutValue > 0 and tempDelta > timeout:
                         process.kill()
                         status = 'Timeout'
-                pass
             except SystemExit:
                 process.terminate()
                 status = 'Canceled'        
