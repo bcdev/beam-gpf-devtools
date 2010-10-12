@@ -86,7 +86,7 @@ for cmdCfg in commandCfgs:
         finally:
             if len(status) == 0:
                 status = 'Completed'
-            output = [id]
+            output = [runid]
             for item in optionConfig:
                 output.append(optionMap[item[0]][1])
             output.extend([delta.total_seconds(), status, command])
