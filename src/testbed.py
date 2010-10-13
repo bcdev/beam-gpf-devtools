@@ -19,8 +19,6 @@ else:
 config = ConfigParser.ConfigParser()
 config.read(configFilePath)
 
-print(config.get(DEFAULT_SECTION, 'beam.standard.home'))
-
 targetProductsPath = config.get(DEFAULT_SECTION, 'targetdir')
 timeoutValue = config.getint(DEFAULT_SECTION, 'timeout')
 timeout = datetime.timedelta(minutes=timeoutValue)
