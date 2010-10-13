@@ -1,7 +1,7 @@
 import os
 import sys
 import datetime
-import time 
+import time
 import subprocess
 import util
 import csv
@@ -15,20 +15,22 @@ COMMANDS_SECTION = 'COMMANDS'
 if len(sys.argv) > 1:
     configFilePath = sys.argv[1]
 else:
-    configFilePath = 'template.config'
+    configFilePath = 'testbed.config'
 config = ConfigParser.ConfigParser()
 config.read(configFilePath)
 
+print(config.get(DEFAULT_SECTION, 'beam.standard.home'))
+
 targetProductsPath = config.get(DEFAULT_SECTION, 'targetdir')
-timeoutValue = config.getint(DEFAULT_SECTION, 'timeout')        
-timeout = datetime.timedelta(minutes=timeoutValue) 
+timeoutValue = config.getint(DEFAULT_SECTION, 'timeout')
+timeout = datetime.timedelta(minutes=timeoutValue)
 clearTargetProductsDir = config.getboolean(DEFAULT_SECTION, 'targetdir.clear')
 
 if clearTargetProductsDir and os.path.exists(targetProductsPath):
-    util.removeDir(targetProductsPath)    
+    util.removeDir(targetProductsPath)
 
 currentTime = datetime.datetime.utcnow()
-resultFileName = 'Result_' + currentTime.strftime("%Y%m%d-%H%M%S") + '.txt'    
+resultFileName = 'Result_' + currentTime.strftime("%Y%m%d-%H%M%S") + '.txt'
 resultsPath = 'results'
 if not os.path.exists(resultsPath):
     os.makedirs(resultsPath)
@@ -50,8 +52,9 @@ csvWriter.writerow(headerline)
 
 
 commandCfgs = util.getSectionMerely(config, COMMANDS_SECTION)
+print(commandCfgs)
 for cmdCfg in commandCfgs:
-    for i in range(len(permutedOptions)):  
+    for i in range(len(permutedOptions)):
         try:
             id = cmdCfg[0]
             command = cmdCfg[1]
@@ -61,7 +64,9 @@ for cmdCfg in commandCfgs:
                 currOpt = keyValue[1][0]
                 if len(currOpt) != 0:
                     command = command.replace('${'+keyValue[0]+'}', currOpt)
-            print(command)                  
+                else:
+                    command = command.replace('${'+keyValue[0]+'}', currOpt)
+            print(command)
             t0 = datetime.datetime.utcnow()
             runid = id + "_" + str(i)
             print("Starting [" + runid + "] at " + str(t0.time()))
@@ -77,7 +82,7 @@ for cmdCfg in commandCfgs:
                         status = 'Timeout'
             except SystemExit:
                 process.terminate()
-                status = 'Canceled'        
+                status = 'Canceled'
             t1 = datetime.datetime.utcnow()
             delta = t1 - t0
         except Exception as e:
@@ -91,7 +96,7 @@ for cmdCfg in commandCfgs:
                 output.append(optionMap[item[0]][1])
             output.extend([delta.total_seconds(), status, command])
             csvWriter.writerow(output)
-            print("Completed[" + runid+"] took: " + str(delta)) 
+            print("Completed[" + runid+"] took: " + str(delta))
             if clearTargetProductsDir:
                 util.removeDir(targetProductsPath)
                 os.makedirs(targetProductsPath)

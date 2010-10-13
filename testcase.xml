@@ -1,16 +1,16 @@
 <graph id="testcase">
 	<version>1.0</version>
 
-	<node id="RC">
-		<operator>Meris.CorrectRadiometry</operator>
+	<node id="ICOL">
+		<operator>IcolMeris</operator>
 		<sources>
-			<source>${source}</source>
+		        <sourceProduct>${sourceProduct}</sourceProduct>
 		</sources>
 		<parameters>
-			<doSmile>true</doSmile>
-			<doEqualization>true</doEqualization>
-			<reproVersion>REPROCESSING_3</reproVersion>
-			<doRadToRefl>false</doRadToRefl>
+			<useUserCtp>true</useUserCtp>
+			<icolAerosolForWater>true</icolAerosolForWater>
+			<icolAerosolCase2>true</icolAerosolCase2>
+			<openclConvolution>false</openclConvolution>
 		</parameters>
 	</node>
 
