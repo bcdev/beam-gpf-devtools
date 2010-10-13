@@ -62,10 +62,7 @@ for cmdCfg in commandCfgs:
             optionString = ''
             for keyValue in optionMap.items():
                 currOpt = keyValue[1][0]
-                if len(currOpt) != 0:
-                    command = command.replace('${'+keyValue[0]+'}', currOpt)
-                else:
-                    command = command.replace('${'+keyValue[0]+'}', currOpt)
+                command = command.replace('${'+keyValue[0]+'}', currOpt)
             print(command)
             t0 = datetime.datetime.utcnow()
             runid = id + "_" + str(i)
