@@ -38,9 +38,6 @@ csvWriter = csv.writer(open(resultsPath + '/' + resultFileName, 'wb'), delimiter
 optionConfig = util.getSectionMerely(config, OPTIONS_SECTION)
 permutedOptions = util.getPermutedOptions(optionConfig)
 
-
-
-
 # write header line
 headerline = ['id']
 for item in optionConfig:
@@ -50,7 +47,6 @@ csvWriter.writerow(headerline)
 
 
 commandCfgs = util.getSectionMerely(config, COMMANDS_SECTION)
-print(commandCfgs)
 for cmdCfg in commandCfgs:
     for i in range(len(permutedOptions)):
         try:
@@ -61,6 +57,12 @@ for cmdCfg in commandCfgs:
             for keyValue in optionMap.items():
                 currOpt = keyValue[1][0]
                 command = command.replace('${'+keyValue[0]+'}', currOpt)
+            firstIndex = command.find('$')
+            if firstIndex > -1:
+                secondIndex = command.find('}')
+                firstPart = command[0:firstIndex]
+                secondPart = command[secondIndex+1:len(command)]
+                command = firstPart + secondPart
             print(command)
             t0 = datetime.datetime.utcnow()
             runid = id + "_" + str(i)
