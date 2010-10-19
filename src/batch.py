@@ -18,12 +18,14 @@ class File():
 class Parameter():
     name = None
     values = None
+    aliases = None
     has_supplemental_value = False
     supplemental_name = ""
 
-    def __init__(self, name, values):
+    def __init__(self, name, values, aliases):
         self.name = name
         self.values = values
+        self.aliases = aliases
         if isinstance(self.values[0], File) :
             self.has_supplemental_value = True
             self.supplemental_name = "size"
@@ -31,6 +33,11 @@ class Parameter():
     def getSupplementalValue(self, index):
         return os.path.getsize(self.values[index].path)
 
+    def hasAlias(self, index):
+        return self.aliases[index] is not None
+
+    def getAlias(self, index):
+        return self.aliases[index]
 
 
 class Executer(perm.NestedFor):
@@ -49,20 +56,25 @@ class Executer(perm.NestedFor):
         self._options = options
 
     def do_element(self, indexes):
-        param_dict = dict()
+        cmd_param_dict = dict()
+        csv_param_dict = dict()
         for i in range(len(indexes)):
             j = indexes[i]
             param = self._parameters[i]
-            param_dict[param.name] = param.values[j]
+            cmd_param_dict[param.name] = param.values[j]
             if param.has_supplemental_value :
-                param_dict[param.supplemental_name] = param.getSupplementalValue(j)
+                cmd_param_dict[param.supplemental_name] = param.getSupplementalValue(j)
+                csv_param_dict[param.supplemental_name] = param.getSupplementalValue(j)
+            if param.hasAlias(j):
+                csv_param_dict[param.name] = param.getAlias(j)
+            else:
+                csv_param_dict[param.name] = param.values[j]
 
         env_dict = dict()
         for key in self._env_dict:
-            env_dict[key] = Template(self._env_dict[key]).safe_substitute(param_dict)
+            env_dict[key] = Template(self._env_dict[key]).safe_substitute(cmd_param_dict)
 
-        command = Template(self._command).safe_substitute(param_dict)
-
+        command = Template(self._command).safe_substitute(cmd_param_dict)
         t0 = time.clock()
         process = subprocess.Popen(command, env=env_dict)
         while process.poll() is None :
@@ -76,8 +88,20 @@ class Executer(perm.NestedFor):
                 raise se
 
         t1 = time.clock()
-        param_dict['time'] = t1 - t0
-        self._writer.writerow(param_dict)
+        csv_param_dict['time'] = t1 - t0
+        self._writer.writerow(csv_param_dict)
+
+    def get_values_and_aliases(self, evaluated_list) :
+        values = []
+        aliases = []
+        for item in evaluated_list:
+            if isinstance(item, list):
+                values.append(item[0])
+                aliases.append(item[1])
+            else :
+                values.append(item)
+                aliases.append(None)
+        return (values, aliases)
 
     def run(self):
         config_dict = dict()
@@ -90,12 +114,17 @@ class Executer(perm.NestedFor):
                 stripper = lambda s: s.strip()
                 tokens = map(stripper, line.split('=', 1))
                 name = tokens[0]
-                value = Template(tokens[1]).safe_substitute(config_dict)
-                config_dict[name] = value
-                if name.startswith(self.PREFIX_COMMAND_PARAM):
-                    self._parameters.append(Parameter(name[len(self.PREFIX_COMMAND_PARAM):], eval(value)))
+                config_values = Template(tokens[1]).safe_substitute(config_dict)
                 if name.startswith(self.PREFIX_COMMAND_ENV):
-                    env_dict[name[len(self.PREFIX_COMMAND_ENV):]] = value
+                    env_dict[name[len(self.PREFIX_COMMAND_ENV):]] = config_values
+                if name.startswith(self.PREFIX_COMMAND_PARAM):
+                    eval_values = eval(config_values)
+                    (values, aliases) = self.get_values_and_aliases(eval_values)
+                    config_dict[name] = values
+                    self._parameters.append(Parameter(name[len(self.PREFIX_COMMAND_PARAM):], values, aliases))
+                else:
+                    config_dict[name] = config_values
+
 
         self._command = config_dict[self.NAME_COMMAND_LINE]
         self._env_dict = env_dict
