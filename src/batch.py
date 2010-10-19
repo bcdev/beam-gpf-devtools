@@ -6,6 +6,32 @@ import time
 import subprocess
 import perm
 
+class File():
+    path = ""
+
+    def __init__(self, path):
+        self.path = path
+
+    def __str__(self):
+        return self.path
+
+class Parameter():
+    name = None
+    values = None
+    has_supplemental_value = False
+    supplemental_name = ""
+
+    def __init__(self, name, values):
+        self.name = name
+        self.values = values
+        if isinstance(self.values[0], File) :
+            self.has_supplemental_value = True
+            self.supplemental_name = "size"
+
+    def getSupplementalValue(self, index):
+        return os.path.getsize(self.values[index].path)
+
+
 
 class Executer(perm.NestedFor):
     PREFIX_COMMAND_PARAM = "cmd.param."
@@ -13,7 +39,7 @@ class Executer(perm.NestedFor):
     NAME_COMMAND_LINE = "cmd.line"
 
     _param_names = []
-    _param_values = []
+    _parameters = []
     _env_dict = {}
     _command = ""
     _writer = None
@@ -26,7 +52,10 @@ class Executer(perm.NestedFor):
         param_dict = dict()
         for i in range(len(indexes)):
             j = indexes[i]
-            param_dict[self._param_names[i]] = self._param_values[i][j]
+            param = self._parameters[i]
+            param_dict[param.name] = param.values[j]
+            if param.has_supplemental_value :
+                param_dict[param.supplemental_name] = param.getSupplementalValue(j)
 
         env_dict = dict()
         for key in self._env_dict:
@@ -64,8 +93,7 @@ class Executer(perm.NestedFor):
                 value = Template(tokens[1]).safe_substitute(config_dict)
                 config_dict[name] = value
                 if name.startswith(self.PREFIX_COMMAND_PARAM):
-                    self._param_names.append(name[len(self.PREFIX_COMMAND_PARAM):])
-                    self._param_values.append(eval(value))
+                    self._parameters.append(Parameter(name[len(self.PREFIX_COMMAND_PARAM):], eval(value)))
                 if name.startswith(self.PREFIX_COMMAND_ENV):
                     env_dict[name[len(self.PREFIX_COMMAND_ENV):]] = value
 
@@ -76,13 +104,19 @@ class Executer(perm.NestedFor):
         if self._options.output_file is not None:
             csvfile = open(self._options.output_file, "wb")
 
-        fieldnames = self._param_names[:]
-        fieldnames.append('time')
+        column_names = []
+        for param in self._parameters:
+            column_names.append(param.name)
+            if param.has_supplemental_value :
+                column_names.append(param.supplemental_name)
+        column_names.append('time')
 
-        self._writer = csv.DictWriter(csvfile, fieldnames)
+        self._writer = csv.DictWriter(csvfile, column_names)
         self._writer.writeheader()
-
-        self.loop(self.get_dim_sizes(self._param_values))
+        parameter_values =[]
+        for p in self._parameters :
+            parameter_values.append(p.values)
+        self.loop(self.get_dim_sizes(parameter_values))
 
         if self._options.output_file is not None:
             csvfile.close()
