@@ -1,0 +1,9 @@
+# Variables prefixed with a 'cmd.param.' must be iterables
+
+cmd.param.p1 = ['a', 'b', 'c']
+cmd.param.p2 = [64, 128, 256, 512, 1024]
+cmd.param.p3 = ['-Dwidth=30', '-Dwidth=60', '-Dwidth=90']
+cmd.param.heap = [1024, 2048]
+
+cmd.env.JVM_OPTIONS = -Xmx${heap}M
+cmd.line = test.bat $p1 $p2 $p3
