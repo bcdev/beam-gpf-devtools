@@ -56,6 +56,8 @@ class Executer(perm.NestedFor):
         self._options = options
 
     def do_element(self, indexes):
+        # because of the aliases we need two dictionaries;
+        # one for substitution in the command line and one for the csv file
         cmd_param_dict = dict()
         csv_param_dict = dict()
         for i in range(len(indexes)):
@@ -77,15 +79,15 @@ class Executer(perm.NestedFor):
         command = Template(self._command).safe_substitute(cmd_param_dict)
         t0 = time.clock()
         process = subprocess.Popen(command, env=env_dict)
-        while process.poll() is None :
-            try:
+        try:
+            while process.poll() is None :
                 time.sleep(0.1)
                 tempDelta = time.clock() - t0
                 if self._options.timeout > 0 and tempDelta > self._options.timeout:
                     process.kill()
-            except SystemExit as se:
-                process.terminate()
-                raise se
+        except SystemExit as se:
+            process.terminate()
+            raise se
 
         t1 = time.clock()
         csv_param_dict['time'] = t1 - t0
