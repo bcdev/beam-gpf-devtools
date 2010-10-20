@@ -78,7 +78,7 @@ class Executer(perm.NestedFor):
 
         command = Template(self._command).safe_substitute(cmd_param_dict)
         t0 = time.clock()
-        process = subprocess.Popen(command, env=env_dict)
+        process = subprocess.Popen(command, env=env_dict, shell=True)
         try:
             while process.poll() is None :
                 time.sleep(0.1)
