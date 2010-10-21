@@ -13,7 +13,7 @@ if __name__ == "__main__":
                       metavar="MINUTES")
     opt_parser.add_option("-q", "--quiet",
                       action="store_false", dest="verbose", default=True,
-                      help="don't print status messages to stdout")
+                      help="don't print status messages to stdout [default: %default]")
 
     (options, args) = opt_parser.parse_args()
     
