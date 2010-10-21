@@ -5,6 +5,7 @@ import sys
 import time
 import subprocess
 import perm
+import datetime
 
 class File():
     path = ""
@@ -77,20 +78,27 @@ class Executer(perm.NestedFor):
             env_dict[key] = Template(self._env_dict[key]).safe_substitute(cmd_param_dict)
 
         command = Template(self._command).safe_substitute(cmd_param_dict)
-        t0 = time.clock()
+        if self._options.verbose :
+            print(command)
+        t0 = datetime.datetime.utcnow()
         process = subprocess.Popen(command, env=env_dict, shell=True)
+        status = None
         try:
             while process.poll() is None :
                 time.sleep(0.1)
-                tempDelta = time.clock() - t0
-                if self._options.timeout > 0 and tempDelta > self._options.timeout:
+                tempDelta = datetime.datetime.utcnow() - t0
+                if self._options.timeout > 0 and tempDelta.total_seconds() > self._options.timeout * 60:
                     process.kill()
+                    status='timeout'
         except SystemExit as se:
-            process.terminate()
+            process.kill()
             raise se
-
-        t1 = time.clock()
-        csv_param_dict['time'] = t1 - t0
+        if status is None:
+            status = "Completed"
+        delta = datetime.datetime.utcnow() - t0
+        csv_param_dict['time'] = delta.total_seconds()
+        csv_param_dict['status'] = status
+        csv_param_dict['command'] = command
         self._writer.writerow(csv_param_dict)
 
     def get_values_and_aliases(self, evaluated_list) :
@@ -140,7 +148,7 @@ class Executer(perm.NestedFor):
             column_names.append(param.name)
             if param.has_supplemental_value :
                 column_names.append(param.supplemental_name)
-        column_names.append('time')
+        column_names.extend(['time', 'status','command'])
 
         self._writer = csv.DictWriter(csvfile, column_names)
         self._writer.writeheader()
