@@ -121,6 +121,11 @@ class Executer(perm.NestedFor):
                 line = line.strip()
                 if line.startswith('#') or line == "":
                     continue
+                # read further if line ends with line continuation character
+                while line.endswith('\\') :
+                    line = line.rstrip('\\')
+                    temp_line = f.next().strip()
+                    line = line + temp_line
                 stripper = lambda s: s.strip()
                 tokens = map(stripper, line.split('=', 1))
                 name = tokens[0]

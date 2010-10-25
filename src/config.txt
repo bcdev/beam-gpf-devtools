@@ -1,7 +1,10 @@
 # Variables prefixed with a 'cmd.param.' must be iterables
 
 cmd.param.p1 = ['a', 'b', 'c']
-cmd.param.p2 = [[64, "small"], 128, [256, "mid"], 512, [1024, "big"]]
+cmd.param.p2 = [[64, "small"],\
+ 128, [256, "mid"], \
+ 512, [1024, "big"],\
+2048, [4096, "biggest"]]
 cmd.param.p3 = ['-Dwidth=30', '-Dwidth=60', '-Dwidth=90']
 cmd.param.heap = [1024, 2048]
 cmd.param.source = [[File("batch.py"), "file1"], File("test.bat")]
