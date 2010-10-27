@@ -32,7 +32,11 @@ class Parameter():
             self.supplemental_name = "size"
 
     def getSupplementalValue(self, index):
-        return os.path.getsize(self.values[index].path)
+        value = self.values[index]
+        if isinstance(value, File) :
+            return os.path.getsize(value.path)
+        else:
+            return ""
 
     def hasAlias(self, index):
         return self.aliases[index] is not None
