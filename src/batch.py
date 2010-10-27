@@ -23,6 +23,22 @@ class File():
 def isWindows():
     return sys.platform.startswith(PID_PREFIX_WINDOWS)
 
+# The sub processes have to be killed differently on Windows and Unix
+# Using process.kill() on windows leads to an access denied error
+# found this code at: http://stackoverflow.com/questions/1682447/cross-platform-way-to-terminate-a-process-in-python
+if(isWindows()) :
+    def kill(theprocess):
+        # the windows way
+        import ctypes
+        PROCESS_TERMINATE = 1
+        handle = ctypes.windll.kernel32.OpenProcess(PROCESS_TERMINATE, False, theprocess.pid)
+        ctypes.windll.kernel32.TerminateProcess(handle, -1)
+        ctypes.windll.kernel32.CloseHandle(handle)
+else:
+    def kill(theprocess):
+        # the unix way
+        theprocess.kill()
+
 
 class Parameter():
     name = None
@@ -94,20 +110,17 @@ class Executer(perm.NestedFor):
         if self._options.verbose :
             print(command)
         t0 = datetime.datetime.utcnow()
-        # shell parameter must be different on Windows and Unix
-        # On Windows the process can not be killed (access denied error) if shell is true
-        # On Unix the command can not be given as string if shell is false
-        process = subprocess.Popen(command, env=env_dict, shell= not isWindows())
+        process = subprocess.Popen(command, env=env_dict, shell=True)
         status = None
         try:
             while process.poll() is None :
                 time.sleep(0.1)
                 tempDelta = datetime.datetime.utcnow() - t0
-                if self._options.timeout > 0 and tempDelta.total_seconds() > self._options.timeout * 60:
-                    process.kill()
-                    status='timeout'
+                if self._options.timeout > 0 and tempDelta.total_seconds() > self._options.timeout :
+                    kill(process)
+                    status="Timeout"
         except SystemExit as se:
-            process.kill()
+            kill(process)
             raise se
         if status is None:
             if process.returncode == 0: 
