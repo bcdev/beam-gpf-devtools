@@ -110,7 +110,10 @@ class Executer(perm.NestedFor):
             process.kill()
             raise se
         if status is None:
-            status = "Completed"
+            if process.returncode == 0: 
+                status = "Completed"
+            else:
+                status = "Error"
         delta = datetime.datetime.utcnow() - t0
         csv_param_dict['time'] = delta.total_seconds()
         csv_param_dict['status'] = status
