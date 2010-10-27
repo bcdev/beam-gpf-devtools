@@ -116,7 +116,7 @@ class Executer(perm.NestedFor):
             while process.poll() is None :
                 time.sleep(0.1)
                 tempDelta = datetime.datetime.utcnow() - t0
-                if self._options.timeout > 0 and tempDelta.total_seconds() > self._options.timeout :
+                if self._options.timeout > 0 and tempDelta.total_seconds() > self._options.timeout * 60:
                     kill(process)
                     status="Timeout"
         except SystemExit as se:
