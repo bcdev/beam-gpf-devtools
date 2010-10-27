@@ -7,6 +7,9 @@ import subprocess
 import perm
 import datetime
 
+
+PID_PREFIX_WINDOWS = "win"
+
 class File():
     path = ""
 
@@ -15,6 +18,11 @@ class File():
 
     def __str__(self):
         return self.path
+
+
+def isWindows():
+    return sys.platform.startswith(PID_PREFIX_WINDOWS)
+
 
 class Parameter():
     name = None
@@ -45,6 +53,7 @@ class Parameter():
         return self.aliases[index]
 
 
+        
 class Executer(perm.NestedFor):
     PREFIX_COMMAND_PARAM = "cmd.param."
     PREFIX_COMMAND_ENV = "cmd.env."
@@ -85,7 +94,10 @@ class Executer(perm.NestedFor):
         if self._options.verbose :
             print(command)
         t0 = datetime.datetime.utcnow()
-        process = subprocess.Popen(command, env=env_dict, shell=True)
+        # shell parameter must be different on Windows and Unix
+        # On Windows the process can not be killed (access denied error) if shell is true
+        # On Unix the command can not be given as string if shell is false
+        process = subprocess.Popen(command, env=env_dict, shell= not isWindows())
         status = None
         try:
             while process.poll() is None :
