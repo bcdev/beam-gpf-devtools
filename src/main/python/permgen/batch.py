@@ -1,3 +1,9 @@
+#############################################################################
+# batch.py: Defines class Executer which is a special NestedFor (perm.py).
+#
+# Authors: Norman Fomferra, Marco Peters
+############################################################################# #
+
 from string import Template
 import csv
 import os
@@ -26,10 +32,11 @@ def isWindows():
 # The sub processes have to be killed differently on Windows and Unix
 # Using process.kill() on windows leads to an access denied error
 # found this code at: http://stackoverflow.com/questions/1682447/cross-platform-way-to-terminate-a-process-in-python
-if(isWindows()) :
+if (isWindows()):
     def kill(theprocess):
         # the windows way
         import ctypes
+
         PROCESS_TERMINATE = 1
         handle = ctypes.windll.kernel32.OpenProcess(PROCESS_TERMINATE, False, theprocess.pid)
         ctypes.windll.kernel32.TerminateProcess(handle, -1)
@@ -38,7 +45,6 @@ else:
     def kill(theprocess):
         # the unix way
         theprocess.kill()
-
 
 class Parameter():
     name = None
@@ -51,13 +57,13 @@ class Parameter():
         self.name = name
         self.values = values
         self.aliases = aliases
-        if isinstance(self.values[0], File) :
+        if isinstance(self.values[0], File):
             self.has_supplemental_value = True
             self.supplemental_name = "size"
 
     def getSupplementalValue(self, index):
         value = self.values[index]
-        if isinstance(value, File) :
+        if isinstance(value, File):
             return os.path.getsize(value.path)
         else:
             return ""
@@ -69,7 +75,6 @@ class Parameter():
         return self.aliases[index]
 
 
-        
 class Executer(perm.NestedFor):
     PREFIX_COMMAND_PARAM = "cmd.param."
     PREFIX_COMMAND_ENV = "cmd.env."
@@ -94,7 +99,7 @@ class Executer(perm.NestedFor):
             j = indexes[i]
             param = self._parameters[i]
             cmd_param_dict[param.name] = param.values[j]
-            if param.has_supplemental_value :
+            if param.has_supplemental_value:
                 cmd_param_dict[param.supplemental_name] = param.getSupplementalValue(j)
                 csv_param_dict[param.supplemental_name] = param.getSupplementalValue(j)
             if param.hasAlias(j):
@@ -107,23 +112,23 @@ class Executer(perm.NestedFor):
             env_dict[key] = Template(self._env_dict[key]).safe_substitute(cmd_param_dict)
 
         command = Template(self._command).safe_substitute(cmd_param_dict)
-        if self._options.verbose :
+        if self._options.verbose:
             print(command)
         t0 = datetime.datetime.utcnow()
         process = subprocess.Popen(command, env=env_dict, shell=True)
         status = None
         try:
-            while process.poll() is None :
+            while process.poll() is None:
                 time.sleep(0.1)
                 tempDelta = datetime.datetime.utcnow() - t0
                 if self._options.timeout > 0 and tempDelta.total_seconds() > self._options.timeout * 60:
                     kill(process)
-                    status="Timeout"
+                    status = "Timeout"
         except SystemExit as se:
             kill(process)
             raise se
         if status is None:
-            if process.returncode == 0: 
+            if process.returncode == 0:
                 status = "Completed"
             else:
                 status = "Error"
@@ -133,17 +138,17 @@ class Executer(perm.NestedFor):
         csv_param_dict['command'] = command
         self._writer.writerow(csv_param_dict)
 
-    def get_values_and_aliases(self, evaluated_list) :
+    def get_values_and_aliases(self, evaluated_list):
         values = []
         aliases = []
         for item in evaluated_list:
             if isinstance(item, list):
                 values.append(item[0])
                 aliases.append(item[1])
-            else :
+            else:
                 values.append(item)
                 aliases.append(None)
-        return (values, aliases)
+        return values, aliases
 
     def run(self):
         config_dict = dict()
@@ -153,8 +158,8 @@ class Executer(perm.NestedFor):
                 line = line.strip()
                 if line.startswith('#') or line == "":
                     continue
-                # read further if line ends with line continuation character
-                while line.endswith('\\') :
+                    # read further if line ends with line continuation character
+                while line.endswith('\\'):
                     line = line.rstrip('\\')
                     temp_line = f.next().strip()
                     line = line + temp_line
@@ -172,7 +177,6 @@ class Executer(perm.NestedFor):
                 else:
                     config_dict[name] = config_values
 
-
         self._command = config_dict[self.NAME_COMMAND_LINE]
         self._env_dict = env_dict
 
@@ -183,14 +187,14 @@ class Executer(perm.NestedFor):
         column_names = []
         for param in self._parameters:
             column_names.append(param.name)
-            if param.has_supplemental_value :
+            if param.has_supplemental_value:
                 column_names.append(param.supplemental_name)
-        column_names.extend(['time', 'status','command'])
+        column_names.extend(['time', 'status', 'command'])
 
         self._writer = csv.DictWriter(csvfile, column_names)
         self._writer.writeheader()
-        parameter_values =[]
-        for p in self._parameters :
+        parameter_values = []
+        for p in self._parameters:
             parameter_values.append(p.values)
         self.loop(self.get_dim_sizes(parameter_values))
 
